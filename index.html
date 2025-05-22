@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>🐤 Chain Chirper</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
@@ -98,6 +98,7 @@
   <div class="container">
     <div class="controls">
       <button id="connectBtn">🔗 Connect Wallet</button>
+      <button id="disconnectBtn">🔌 Disconnect</button>
       <button id="submitBtn">📨 Submit</button>
     </div>
 
@@ -143,15 +144,18 @@
       }
     ];
 
-    let signer, contract;
+    let signer = null;
+    let contract = null;
 
     document.getElementById("connectBtn").onclick = async () => {
-      if (!window.ethereum) return alert("请安装 MetaMask");
+      if (!window.ethereum) {
+        alert("请安装 MetaMask");
+        return;
+      }
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       signer = provider.getSigner();
-
       const address = await signer.getAddress();
       document.getElementById("status").innerText = `✅ Connected: ${address}`;
 
@@ -159,9 +163,20 @@
       loadMessages();
     };
 
+    document.getElementById("disconnectBtn").onclick = () => {
+      signer = null;
+      contract = null;
+      document.getElementById("status").innerText = "🟡 Wallet disconnected";
+      document.getElementById("messages").innerHTML = "No messages loaded.";
+      document.getElementById("messageInput").value = "";
+    };
+
     document.getElementById("submitBtn").onclick = async () => {
       const input = document.getElementById("messageInput").value.trim();
-      if (!input || !contract) return alert("请先连接钱包并输入留言");
+      if (!input || !contract) {
+        alert("请连接钱包并输入留言");
+        return;
+      }
 
       try {
         const tx = await contract.leaveMessage(input);
@@ -174,6 +189,7 @@
     };
 
     async function loadMessages() {
+      if (!contract) return;
       const container = document.getElementById("messages");
       container.innerHTML = "📡 Loading...";
       try {
@@ -197,5 +213,3 @@
   </script>
 </body>
 </html>
-
-
